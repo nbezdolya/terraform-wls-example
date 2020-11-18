@@ -1,0 +1,1217 @@
+#
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
+#
+title: WLS Terraform Input Variables
+description: WLS Terraform Input Variables
+schemaVersion: 1.1.0
+version: "20190304"
+groupings:
+  - title: "WebLogic Server Instance"
+    variables:
+      - ${service_name}
+      - ${instance_shape}
+      - ${ssh_public_key}
+      - ${wls_node_count}
+      - ${wls_admin_user}
+      - ${wls_admin_password_ocid}
+
+  - title: "WebLogic Server Instance Advanced"
+    variables:
+      - ${use_advanced_wls_instance_config}
+      - ${wls_nm_port}
+      - ${wls_extern_admin_port}
+      - ${wls_extern_ssl_admin_port}
+      - ${wls_cluster_mc_port}
+      - ${wls_ms_extern_port}
+      - ${wls_ms_extern_ssl_port}
+      - ${deploy_sample_app}
+      - ${allow_manual_domain_extension}
+
+  - title: "WebLogic Server Network"
+    variables:
+      - ${network_compartment_id}
+      - ${vcn_strategy}
+      - ${wls_existing_vcn_id}
+      - ${wls_vcn_name}
+      - ${wls_vcn_cidr}
+      - ${subnet_strategy_existing_vcn}
+      - ${subnet_strategy_new_vcn}
+      - ${subnet_type}
+      - ${subnet_span}
+      - ${wls_subnet_id}
+      - ${wls_availability_domain_name}
+      - ${wls_subnet_cidr}
+      - ${is_bastion_instance_required}
+      - ${bastion_subnet_id}
+      - ${bastion_subnet_cidr}
+      - ${bastion_instance_shape}
+      - ${add_load_balancer}
+      - ${is_lb_private}
+      - ${lb_subnet_1_id}
+      - ${lb_subnet_2_id}
+      - ${lb_subnet_1_availability_domain_name}
+      - ${lb_subnet_1_cidr}
+      - ${lb_subnet_2_availability_domain_name}
+      - ${lb_subnet_2_cidr}
+      - ${lb_shape}
+
+  - title: "OCI Policies"
+    visible: true
+    variables:
+      - ${create_policies}
+
+  - title: "Database"
+    visible: true
+    variables:
+      - ${ocidb_compartment_id}
+      - ${ocidb_dbsystem_id}
+      - ${ocidb_network_compartment_id}
+      - ${ocidb_existing_vcn_id}
+      - ${ocidb_existing_vcn_add_seclist}
+      - ${ocidb_dbhome_id}
+      - ${ocidb_dbhome_major_version}
+      - ${ocidb_database_id}
+      - ${ocidb_pdb_service_name}
+      - ${oci_db_user}
+      - ${oci_db_password_ocid}
+      - ${db_port}
+
+  - title: "Local VCN Peering"
+    visible: true
+    variables:
+      - ${wls_dns_subnet_cidr}
+      - ${ocidb_dns_subnet_cidr}
+      - ${dns_instance_shape}
+
+  - title: "Tags"
+    variables:
+      - ${defined_tag}
+      - ${defined_tag_value}
+      - ${free_form_tag}
+      - ${free_form_tag_value}
+
+  - title: "Hidden Variables"
+    visible: false
+    variables:
+      - ${tenancy_ocid}
+      - ${region}
+      - ${compartment_ocid}
+      - ${mode}
+      - ${wls_subnet_name}
+      - ${bastion_subnet_name}
+      - ${lb_subnet_1_name}
+      - ${lb_subnet_2_name}
+      - ${user_id}
+      - ${fingerprint}
+      - ${private_key_path}
+      - ${wls_edition}
+      - ${use_marketplace_image}
+      - ${mp_listing_id}
+      - ${mp_listing_resource_version}
+      - ${wls_version}
+      - ${log_level}
+      - ${atp_db_wallet_password}
+      - ${instance_image_id}
+      - ${marketplace_source_images}
+      - ${use_regional_subnet}
+      - ${assign_weblogic_public_ip}
+      - ${mp_baselinux_instance_image_id}
+      - ${mp_baselinux_listing_id}
+      - ${mp_baselinux_listing_resource_version}
+      - ${use_local_vcn_peering}
+      - ${existing_bastion_instance_id}
+      - ${bastion_ssh_private_key}
+      - ${is_idcs_selected}
+      - ${idcs_host}
+      - ${idcs_port}
+      - ${idcs_tenant}
+      - ${idcs_client_id}
+      - ${idcs_client_secret_ocid}
+      - ${idcs_cloudgate_port}
+      - ${add_JRF}
+      - ${atp_db_compartment_id}
+      - ${atp_db_id}
+      - ${atp_db_password_ocid}
+      - ${atp_db_level}
+      - ${db_strategy}
+      - ${wls_admin_port}
+      - ${wls_ssl_admin_port}
+      - ${wls_ms_port}
+      - ${wls_ms_ssl_port}
+      - ${volume_name}
+
+variables:
+  # WLS Instance Configuration
+  service_name:
+    visible: ${orm_create_mode}
+    type: string
+    minLength: 1
+    maxLength: 8
+    pattern: "^[a-zA-Z][a-zA-Z0-9]{0,7}$"
+    title: Resource Name Prefix
+    description: The names of all compute and network resources will begin with this prefix. It can only contain letters or numbers and must begin with a letter.
+    required: true
+
+  instance_image_id:
+    visible: ${orm_create_mode}
+    type: oci:core:image:id
+    required: true
+    title: Instance Image OCID
+    dependsOn:
+      compartmentId: ${compartment_ocid}
+
+  instance_shape:
+    visible: ${orm_create_mode}
+    type: oci:core:instanceshape:name
+    title: WebLogic Server Shape
+    description: The shape for all WebLogic Server compute instances
+    required: true
+    dependsOn:
+      compartmentId: ${compartment_ocid}
+      imageId: ${instance_image_id}
+
+  ssh_public_key:
+    type: string
+    title: SSH Public Key
+    description: Use the corresponding private key to access the WebLogic Server compute instances
+    required: true
+
+  wls_availability_domain_name:
+    type: oci:identity:availabilitydomain:name
+    title: WebLogic Server Availability Domain
+    description: The name of the availability domain in which to create the WebLogic Server compute instances
+    required: true
+    dependsOn:
+      compartmentId: ${compartment_ocid}
+    visible:
+      and:
+        - ${orm_create_mode}
+        - or:
+          - and:
+            - eq:
+                - ${vcn_strategy}
+                - "Use Existing VCN"
+            - eq:
+                - ${subnet_strategy_existing_vcn}
+                - "Create New Subnet"
+            - eq:
+                - ${subnet_span}
+                - "AD Specific Subnet"
+          - and:
+            - eq:
+              - ${vcn_strategy}
+              - "Create New VCN"
+            - eq:
+              - ${subnet_strategy_new_vcn}
+              - "Create New Subnet"
+            - eq:
+                - ${subnet_span}
+                - "AD Specific Subnet"
+
+  wls_node_count:
+    type: integer
+    title: WebLogic Server Node Count
+    description: The number of WebLogic Server compute instances, and also the number of managed servers in the domain. The maximum is 8, except for 11g Standard Edition which is 4.
+    minimum: 1
+    maximum: 8
+    multipleOf: 1
+    default: 1
+    required: true
+
+  wls_admin_user:
+    visible: ${orm_create_mode}
+    type: string
+    title: WebLogic Server Admin User Name
+    description: The name of the administrator in the WebLogic Server domain
+    pattern: "^[a-zA-Z][a-zA-Z0-9]{7,127}$"
+    minLength: 8
+    maxLength: 128
+    required: true
+
+  wls_admin_password_ocid:
+    visible: ${orm_create_mode}
+    type: string
+    title: Secrets OCID for WebLogic Server Admin Password
+    description: "The OCID of the Secret that contains the password for the administrator in the WebLogic Server domain. Use a WebLogic Administrator password that starts with a letter, is between 8 and 30 characters long, contains at least one number, and, optionally, any number of the special characters ($ # _). For example, Ach1z0#d."
+    required: true
+
+  # WLS Advanced Configuration Option
+  use_advanced_wls_instance_config:
+    visible: ${orm_create_mode}
+    type: boolean
+    default: false
+    title: "WLS Instance Advanced Configuration"
+
+  wls_nm_port:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - ${use_advanced_wls_instance_config}
+    type: integer
+    default: 5556
+    minimum: 1024
+    maximum: 65535
+    multipleOf: 1
+    title: WebLogic Server Node Manager Port
+    description: The listen port number for the node manager process on all compute instances
+    required: true
+
+  wls_extern_admin_port:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - ${use_advanced_wls_instance_config}
+    type: integer
+    default: 7001
+    minimum: 1024
+    maximum: 65535
+    multipleOf: 1
+    title: WebLogic Server Admin Console Port
+    description: The administration server port on which to access the administration console
+    required: true
+
+  wls_extern_ssl_admin_port:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - ${use_advanced_wls_instance_config}
+    type: integer
+    default: 7002
+    minimum: 1024
+    maximum: 65535
+    multipleOf: 1
+    title: WebLogic Server Admin Console SSL Port
+    description: The administration server SSL port on which to access the administration console
+    required: true
+
+  wls_cluster_mc_port:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - ${use_advanced_wls_instance_config}
+    type: integer
+    default: 5555
+    minimum: 1024
+    maximum: 65535
+    multipleOf: 1
+    title: WebLogic Cluster Port
+    description: The managed server port on which to send heartbeats and other internal cluster traffic (not applicable for Standard Edition)
+    required: true
+
+  wls_ms_extern_port:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - ${use_advanced_wls_instance_config}
+    type: integer
+    default: 7003
+    minimum: 1024
+    maximum: 65535
+    multipleOf: 1
+    title: WebLogic Managed Server External Port
+    description: The managed server port on which to send application traffic
+    required: true
+
+  wls_ms_extern_ssl_port:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - ${use_advanced_wls_instance_config}
+    type: integer
+    default: 7004
+    minimum: 1024
+    maximum: 65535
+    multipleOf: 1
+    title: WebLogic Managed Server External SSL Port
+    description: The managed server SSL port on which to send application traffic
+    required: true
+
+  deploy_sample_app:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - and:
+          - ${use_advanced_wls_instance_config}
+          - not:
+              - eq:
+                  - ${wls_edition}
+                  - "SE"
+    type: boolean
+    default: true
+    title: Deploy Sample Application
+    description: Deploy an application named sample-app to the WebLogic cluster (Not applicable for Standard Edition)
+
+  allow_manual_domain_extension:
+    visible:
+      not:
+        - ${orm_create_mode}
+    type: boolean
+    default: false
+    title: Do Not Update Domain Configuration for Scale Out
+    description: When nodes are added to an existing stack, the domain configuration is not modified. You must manually add the managed servers to your domain configuration after updating the stack. This field applies only to editing an existing stack and not to creating a new one.
+
+  # Network Type Options
+  network_compartment_id:
+    visible: ${orm_create_mode}
+    type: oci:identity:compartment:id
+    title: Network Compartment
+    description: The compartment where you want to create the network resources such as Virtual Cloud Network, security lists, route tables and gateways.
+    required: false
+    default: ${compartment_ocid}
+
+  vcn_strategy:
+    visible: ${orm_create_mode}
+    type: enum
+    title: Virtual Cloud Network Strategy
+    description: Create or use existing VCN
+    enum:
+      - "Create New VCN"
+      - "Use Existing VCN"
+    required: true
+    default: "Use Existing VCN"
+
+  subnet_strategy_existing_vcn:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - eq:
+          - ${vcn_strategy}
+          - "Use Existing VCN"
+    type: enum
+    title: Subnet Strategy
+    description: Create or use existing subnet
+    enum:
+      - "Create New Subnet"
+      - "Use Existing Subnet"
+    required: true
+    default: "Use Existing Subnet"
+
+  subnet_strategy_new_vcn:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - eq:
+          - ${vcn_strategy}
+          - "Create New VCN"
+    type: enum
+    title: Subnet Strategy
+    description: Create or use existing subnet
+    enum:
+      - "Create New Subnet"
+    required: true
+    default: "Create New Subnet"
+
+  subnet_type:
+    visible: ${orm_create_mode}
+    type: enum
+    title: Subnet Type
+    description: Choose between private and public subnets
+    enum:
+      - "Use Private Subnet"
+      - "Use Public Subnet"
+    required: true
+    default: "Use Public Subnet"
+
+  subnet_span:
+    visible: ${orm_create_mode}
+    type: enum
+    title: Subnet Span
+    description: Choose between regional and AD specific subnets
+    enum:
+      - "Regional Subnet"
+      - "AD Specific Subnet"
+    required: true
+    default: "Regional Subnet"
+
+  # WLS Network Configuration
+  wls_vcn_name:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - eq:
+          - ${vcn_strategy}
+          - "Create New VCN"
+    type: string
+    default: ''
+    minLength: 1
+    maxLength: 255
+    pattern: "^[a-zA-Z_]\\w{0,254}$"
+    required: true
+    title: WebLogic Server Network
+    description: The name of the new Virtual Cloud Network (VCN) to create for this service
+
+  wls_existing_vcn_id:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - eq:
+          - ${vcn_strategy}
+          - "Use Existing VCN"
+    type: oci:core:vcn:id
+    dependsOn:
+      compartmentId: ${network_compartment_id}
+    required: true
+    default: ''
+    title: Existing Network
+    description: An existing Virtual Cloud Network (VCN) in which to create the compute instances, network resources, and load balancers. If not specified, a new VCN is created.
+
+  wls_vcn_cidr:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - eq:
+          - ${vcn_strategy}
+          - "Create New VCN"
+    type: string
+    default: 10.0.0.0/16
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    title: WebLogic Server Network CIDR
+    description: The CIDR to assign to the new Virtual Cloud Network (VCN) to create for this service. This field is not required if you want to use an existing VCN. When using VCN peering ensure that the VCNs being peered have non-overlapping CIDR blocks.
+
+  wls_subnet_cidr:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - or:
+          - and:
+            - eq:
+                - ${vcn_strategy}
+                - "Use Existing VCN"
+            - eq:
+                - ${subnet_strategy_existing_vcn}
+                - "Create New Subnet"
+          - and:
+            - eq:
+              - ${vcn_strategy}
+              - "Create New VCN"
+            - eq:
+              - ${subnet_strategy_new_vcn}
+              - "Create New Subnet"
+    type: string
+    default: 10.0.3.0/24
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    required: true
+    title: WebLogic Server Subnet CIDR
+    description: "The CIDR of the new subnet to create for WebLogic Server compute instances. This field is required only if you want to use an existing VCN. The new subnet's CIDR should not overlap with any other subnet CIDRs."
+
+  wls_subnet_id:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - and:
+          - eq:
+              - ${vcn_strategy}
+              - "Use Existing VCN"
+          - eq:
+              - ${subnet_strategy_existing_vcn}
+              - "Use Existing Subnet"
+    type: oci:core:subnet:id
+    dependsOn:
+      vcnId: ${wls_existing_vcn_id}
+      compartmentId: ${network_compartment_id}
+      hidePrivateSubnet:
+        not:
+          - eq:
+              - ${subnet_type}
+              - "Use Private Subnet"
+      hidePublicSubnet:
+        not:
+          - eq:
+              - ${subnet_type}
+              - "Use Public Subnet"
+      hideRegionalSubnet:
+        not:
+          - eq:
+              - ${subnet_span}
+              - "Regional Subnet"
+      hideAdSubnet:
+        not:
+          - eq:
+              - ${subnet_span}
+              - "AD Specific Subnet"
+    default: ''
+    required: true
+    title: Existing Subnet for WebLogic Server
+    description: An existing subnet to use for WebLogic Server compute instances. This subnet must already be present in the chosen VCN.
+
+  assign_weblogic_public_ip:
+    visible: ${orm_create_mode}
+    type: boolean
+    default: true
+    title: Assign Public IP Addresses to WebLogic Server
+    description: If not selected, the WebLogic Server compute instances are created in a new private subnet. The compute instances, admin console, and applications will not be directly accessible from clients that are external to Oracle Cloud.
+
+  is_bastion_instance_required:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - eq:
+          - ${subnet_type}
+          - "Use Private Subnet"
+    type: boolean
+    default: true
+    title: Provision Bastion node on public subnet
+    description: Provision a bastion compute instance on a public subnet to provide access to the WebLogic Server compute instances on a private subnet. If not selected, you must check the status of the compute instances after the stack job is complete.
+
+  bastion_subnet_name:
+    visible: ${orm_create_mode}
+    type: string
+    default: 'bastion-subnet'
+    title: Bastion Host Subnet Name
+    description: Subnet name for Bastion host
+
+  bastion_subnet_cidr:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - and:
+          - ${is_bastion_instance_required}
+          - eq:
+              - ${subnet_type}
+              - "Use Private Subnet"
+          - or:
+              - and:
+                  - eq:
+                      - ${vcn_strategy}
+                      - "Use Existing VCN"
+                  - eq:
+                      - ${subnet_strategy_existing_vcn}
+                      - "Create New Subnet"
+              - and:
+                  - eq:
+                      - ${vcn_strategy}
+                      - "Create New VCN"
+                  - eq:
+                      - ${subnet_strategy_new_vcn}
+                      - "Create New Subnet"
+    type: string
+    default: 10.0.6.0/24
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    required: true
+    title: Bastion Host Subnet CIDR
+    description: "The CIDR of the new public subnet to create for a Bastion compute instance. This field is required only if you did not assign public IP addresses to WebLogic Server. The new subnet's CIDR should not overlap with any other subnet CIDRs."
+
+  bastion_subnet_id:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - and:
+          - ${is_bastion_instance_required}
+          - eq:
+              - ${subnet_type}
+              - "Use Private Subnet"
+          - and:
+              - eq:
+                  - ${vcn_strategy}
+                  - "Use Existing VCN"
+              - eq:
+                  - ${subnet_strategy_existing_vcn}
+                  - "Use Existing Subnet"
+    type: oci:core:subnet:id
+    dependsOn:
+      vcnId: ${wls_existing_vcn_id}
+      compartmentId: ${network_compartment_id}
+      hidePrivateSubnet: true
+      hidePublicSubnet: false
+      hideRegionalSubnet:
+        not:
+          - eq:
+              - ${subnet_span}
+              - "Regional Subnet"
+      hideAdSubnet:
+        not:
+          - eq:
+              - ${subnet_span}
+              - "AD Specific Subnet"
+    default: ''
+    required: true
+    title: Existing Subnet for Bastion Host
+    description: An existing public subnet to use for a Bastion compute instance. This subnet must already be present in the chosen VCN. This field is required only if you did not assign public IP addresses to WebLogic Server.
+
+  bastion_instance_shape:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - and:
+          - ${is_bastion_instance_required}
+          - eq:
+              - ${subnet_type}
+              - "Use Private Subnet"
+      type: oci:core:instanceshape:name
+    title: Bastion Host Shape
+    description: The shape for bastion compute instance.
+    required: true
+    dependsOn:
+      compartmentId: ${compartment_ocid}
+      imageId: ${mp_baselinux_instance_image_id}
+
+  # Load Balancer Configuration
+  add_load_balancer:
+    type: boolean
+    default: false
+    title: Provision Load Balancer
+    description: Provision a load balancer in Oracle Cloud Infrastructure to distribute application traffic to the managed servers in the domain
+
+  is_lb_private:
+    visible:
+      and:
+        - ${add_load_balancer}
+        - eq:
+            - ${subnet_type}
+            - "Use Private Subnet"
+    type: boolean
+    default: false
+    title: Private Load balancer
+    description: Provision a private load balancer.
+
+  lb_subnet_1_availability_domain_name:
+    visible:
+      and:
+        - ${add_load_balancer}
+        - and:
+            - or:
+              - and:
+                  - eq:
+                      - ${vcn_strategy}
+                      - "Use Existing VCN"
+                  - eq:
+                      - ${subnet_strategy_existing_vcn}
+                      - "Create New Subnet"
+              - and:
+                  - eq:
+                      - ${vcn_strategy}
+                      - "Create New VCN"
+                  - eq:
+                      - ${subnet_strategy_new_vcn}
+                      - "Create New Subnet"
+            - eq:
+                - ${subnet_span}
+                - "AD Specific Subnet"
+    type: oci:identity:availabilitydomain:name
+    dependsOn:
+      compartmentId: ${network_compartment_id}
+      hidePrivateSubnet: true
+      hidePublicSubnet: false
+      hideRegionalSubnet:
+        not:
+          - eq:
+              - ${subnet_span}
+              - "Regional Subnet"
+      hideAdSubnet:
+        not:
+          - eq:
+              - ${subnet_span}
+              - "AD Specific Subnet"
+    title: LB Availability Domain for subnet 1
+    description: The availability domain to use for the second load balancer node. This field is required only if you are using AD-specific subnets.
+    default: ''
+
+  lb_subnet_2_availability_domain_name:
+    visible:
+      and:
+        - ${add_load_balancer}
+        - and:
+            - or:
+                - and:
+                    - eq:
+                        - ${vcn_strategy}
+                        - "Use Existing VCN"
+                    - eq:
+                        - ${subnet_strategy_existing_vcn}
+                        - "Create New Subnet"
+                - and:
+                    - eq:
+                        - ${vcn_strategy}
+                        - "Create New VCN"
+                    - eq:
+                        - ${subnet_strategy_new_vcn}
+                        - "Create New Subnet"
+            - eq:
+                - ${subnet_span}
+                - "AD Specific Subnet"
+    type: oci:identity:availabilitydomain:name
+    dependsOn:
+      compartmentId: ${network_compartment_id}
+      hidePrivateSubnet: true
+      hidePublicSubnet: false
+      hideRegionalSubnet:
+        not:
+          - eq:
+              - ${subnet_span}
+              - "Regional Subnet"
+      hideAdSubnet:
+        not:
+          - eq:
+              - ${subnet_span}
+              - "AD Specific Subnet"
+    title: LB Availability Domain for subnet 2
+    description: Select LB Availability Domain. Only required if provisioning with Load Balancer is selected.
+    default: ''
+
+  lb_subnet_1_cidr:
+    visible:
+      and:
+        - ${add_load_balancer}
+        - or:
+            - and:
+                - eq:
+                    - ${vcn_strategy}
+                    - "Use Existing VCN"
+                - eq:
+                    - ${subnet_strategy_existing_vcn}
+                    - "Create New Subnet"
+            - and:
+                - eq:
+                    - ${vcn_strategy}
+                    - "Create New VCN"
+                - eq:
+                    - ${subnet_strategy_new_vcn}
+                    - "Create New Subnet"
+    type: string
+    default: 10.0.4.0/24
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    required: true
+    title: Load Balancer Subnet CIDR
+    description: "The CIDR of the new subnet to create for the load balancer. The new subnet's CIDR should not overlap with any other subnet CIDRs."
+
+  lb_subnet_1_id:
+    visible:
+      and:
+        - ${add_load_balancer}
+        - and:
+            - eq:
+                - ${vcn_strategy}
+                - "Use Existing VCN"
+            - eq:
+                - ${subnet_strategy_existing_vcn}
+                - "Use Existing Subnet"
+    type: oci:core:subnet:id
+    dependsOn:
+      vcnId: ${wls_existing_vcn_id}
+      compartmentId: ${network_compartment_id}
+      hidePrivateSubnet:
+        not:
+          - ${is_lb_private}
+      hidePublicSubnet: ${is_lb_private}
+      hideRegionalSubnet:
+        not:
+          - eq:
+              - ${subnet_span}
+              - "Regional Subnet"
+      hideAdSubnet:
+        not:
+          - eq:
+              - ${subnet_span}
+              - "AD Specific Subnet"
+    default: ''
+    required: true
+    title: Existing Subnet for Load Balancer
+    description: An existing subnet to use for the load balancer. This subnet must already be present in the chosen VCN.
+
+  lb_subnet_2_cidr:
+    visible:
+      and:
+        - ${add_load_balancer}
+        - and:
+            - or:
+                - and:
+                    - eq:
+                        - ${vcn_strategy}
+                        - "Use Existing VCN"
+                    - eq:
+                        - ${subnet_strategy_existing_vcn}
+                        - "Create New Subnet"
+                - and:
+                    - eq:
+                        - ${vcn_strategy}
+                        - "Create New VCN"
+                    - eq:
+                        - ${subnet_strategy_new_vcn}
+                        - "Create New Subnet"
+            - eq:
+                - ${subnet_span}
+                - "AD Specific Subnet"
+    type: string
+    default: 10.0.5.0/24
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    required: true
+    title: Load Balancer Subnet 2 CIDR
+    description: "The CIDR of the subnet to create for the second load balancer node. This field is required only if you are not using regional subnets. The new subnet's CIDR should not overlap with any other subnet CIDRs."
+
+  lb_subnet_2_id:
+    visible:
+      and:
+        - ${add_load_balancer}
+        - and:
+            - and:
+                - eq:
+                    - ${vcn_strategy}
+                    - "Use Existing VCN"
+                - eq:
+                    - ${subnet_strategy_existing_vcn}
+                    - "Use Existing Subnet"
+            - eq:
+                - ${subnet_span}
+                - "AD Specific Subnet"
+    type: oci:core:subnet:id
+    dependsOn:
+      vcnId: ${wls_existing_vcn_id}
+      compartmentId: ${network_compartment_id}
+      hidePrivateSubnet:
+        not:
+          - ${is_lb_private}
+      hidePublicSubnet: ${is_lb_private}
+      hideRegionalSubnet:
+        not:
+          - eq:
+              - ${subnet_span}
+              - "Regional Subnet"
+      hideAdSubnet:
+        not:
+          - eq:
+              - ${subnet_span}
+              - "AD Specific Subnet"
+    default: ''
+    required: true
+    title: Existing Subnet 2 for Load Balancer
+    description: An existing subnet to use for the second load balancer node. This field is required only if you are not using regional subnets.
+
+  lb_shape:
+    visible: ${add_load_balancer}
+    type: enum
+    title: Load balancer Shape
+    description: The shape for Load balancer
+    enum:
+      - 100Mbps
+      - 400Mbps
+      - 8000Mbps
+    default: 400Mbps
+
+  # OCI DB Configuration
+
+  ocidb_network_compartment_id:
+    visible: ${orm_create_mode}
+    type: oci:identity:compartment:id
+    required: true
+    title: DB System Network Compartment
+    description: The compartment in which the DB System Virtual Cloud Network is found.
+    default: ${compartment_ocid}
+
+  ocidb_compartment_id:
+    visible: ${orm_create_mode}
+    type: oci:identity:compartment:id
+    required: true
+    title: DB System Compartment
+    description: The compartment in which the DB System is found
+    default: ${compartment_ocid}
+
+  ocidb_existing_vcn_id:
+    visible: ${orm_create_mode}
+    type: oci:core:vcn:id
+    dependsOn:
+      compartmentId: ${ocidb_network_compartment_id}
+    required: true
+    default: ''
+    title: DB System Network
+    description: An existing Virtual Cloud Network (VCN) used by DB System. If the selected VCN is different from WebLogic Server VCN then local VCN peering will be setup. When using VCN peering ensure that the VCNs being peered have non-overlapping CIDR blocks.
+
+  ocidb_existing_vcn_add_seclist:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - ${create_policies}
+    type: boolean
+    dependsOn:
+      compartmentId: ${ocidb_network_compartment_id}
+    default: true
+    title: CREATE DB SECURITY LIST
+    description: Add a security list to the DB subnet that allows connections from the WebLogic Server subnet
+
+  ocidb_dbsystem_id:
+    visible: ${orm_create_mode}
+    type: oci:database:dbsystem:id
+    dependsOn:
+      compartmentId: ${ocidb_compartment_id}
+    required: true
+    title: DB System
+    description: The Oracle Cloud Infrastructure DB System to use for this WebLogic Server domain.
+
+  ocidb_dbhome_id:
+    visible: ${orm_create_mode}
+    type: oci:database:dbhome:id
+    required: true
+    title: Database home in the DB System
+    description: The database home within the DB System
+    dependsOn:
+      compartmentId: ${ocidb_compartment_id}
+      dbSystemId: ${ocidb_dbsystem_id}
+
+  ocidb_dbhome_major_version:
+    visible: ${orm_create_mode}
+    type: oci:database:dbhome:dbversion
+    title: Version of Database home in the DB System
+    description: The version of database home within the DB System
+    dependsOn:
+      dbHomeId: ${ocidb_dbhome_id}
+
+  ocidb_database_id:
+    visible: ${orm_create_mode}
+    type: oci:database:database:id
+    dependsOn:
+      compartmentId: ${ocidb_compartment_id}
+      dbHomeId: ${ocidb_dbhome_id}
+    required: true
+    title: Database in the DB System
+    description: The database within the DB System in which to provision the schemas for a JRF-enabled WebLogic Server domain
+
+  ocidb_pdb_service_name:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - not:
+          - eq:
+              - ${ocidb_dbhome_major_version}
+              - "11"
+    type: string
+    required: true
+    title: PDB
+    description: The name of the pluggable database (PDB) in which to provision the schemas for a JRF-enabled WebLogic Server domain. This is required for Oracle Database 12c or later.
+
+  oci_db_user:
+    visible: ${orm_create_mode}
+    type: string
+    default: SYS
+    pattern: "^[a-zA-Z][a-zA-Z0-9]{1,49}$"
+    minLength: 2
+    maxLength: 50
+    title: Database Administrator
+    description: The name of a database user with database administrator (DBA) privileges
+    required: true
+
+  db_port:
+    visible: ${orm_create_mode}
+    type: integer
+    default: 1521
+    title: Database Listener Port
+    description: The Listener Port for the Database
+    required: false
+
+  oci_db_password_ocid:
+    visible: ${orm_create_mode}
+    type: string
+    required: true
+    title: Secrets OCID for Database Administrator Password
+    description: The Secrets OCID that contains password for the database administrator
+
+  # VCN peering related controls
+
+  wls_dns_subnet_cidr:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - or:
+          - not:
+              - eq:
+                  - ${wls_existing_vcn_id}
+                  - ${ocidb_existing_vcn_id}
+          - eq:
+              - ${vcn_strategy}
+              - "Create New VCN"
+    type: string
+    title: WLS DNS Subnet CIDR
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    required: true
+    description: The CIDR of the new subnet to create for the DNS Forwarder compute instance in the WebLogic Server VCN. The new subnet's CIDR should not overlap with any other subnet CIDRs.
+
+  ocidb_dns_subnet_cidr:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - or:
+          - not:
+              - eq:
+                  - ${wls_existing_vcn_id}
+                  - ${ocidb_existing_vcn_id}
+          - eq:
+              - ${vcn_strategy}
+              - "Create New VCN"
+    type: string
+    title: DB DNS Subnet CIDR
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    required: true
+    description: The CIDR of the new subnet to create for the DNS Forwarder compute instance in the database VCN. The new subnet's CIDR should not overlap with any other subnet CIDRs.
+
+  dns_instance_shape:
+    visible:
+      and:
+        - ${orm_create_mode}
+        - or:
+          - not:
+              - eq:
+                  - ${wls_existing_vcn_id}
+                  - ${ocidb_existing_vcn_id}
+          - eq:
+              - ${vcn_strategy}
+              - "Create New VCN"
+    type: oci:core:instanceshape:name
+    title: DNS Forwarder Host Shape
+    description: The shape for the DNS Forwarder compute instances.
+    required: true
+    dependsOn:
+      compartmentId: ${compartment_ocid}
+      imageId: ${mp_baselinux_instance_image_id}
+
+  # Tagging variables
+
+  defined_tag:
+    visible: ${orm_create_mode}
+    type: string
+    title: Defined Tag key
+    minLength: 0
+    maxLength: 100
+    default: ''
+    description: The name of a predefined tag (<namespace>.<key>) to assign to the resources created in this stack. For example, Operations.CostCenter.
+    required: false
+
+  defined_tag_value:
+    visible: ${orm_create_mode}
+    type: string
+    title: Defined Tag value
+    minLength: 0
+    maxLength: 256
+    default: ''
+    description: The value to assign to the predefined tag
+    required: false
+
+  free_form_tag:
+    visible: ${orm_create_mode}
+    type: string
+    title: Free-form Tag key
+    minLength: 0
+    maxLength: 100
+    default: ''
+    description: The name of a new free-form tag to assign to the resources created in this stack. Free-form tag keys are case sensitive.
+    required: false
+
+  free_form_tag_value:
+    visible: ${orm_create_mode}
+    type: string
+    title: Free-form Tag value
+    minLength: 0
+    maxLength: 256
+    default: ''
+    description: The value to assign to the free-form tag
+    required: false
+
+  # Hidden Variables
+  mode:
+    type: enum
+    title: Terraform mode
+    description: Select Terraform mode for development or production. In development mode, local VM scripts zip is seeded on WLS VMs.
+    enum:
+      - PROD
+      - DEV
+    default: PROD
+
+  wls_subnet_name:
+    type: string
+    default: 'wls-subnet'
+    title: WebLogic Server Subnet Name
+    description: The name of the new subnet to create for WebLogic Server compute instances. This field is required only if you want to use an existing VCN.
+
+  lb_subnet_1_name:
+    type: string
+    default: 'lb-subnet-1'
+    title: Load Balancer Subnet Name
+    description: The name of the new subnet to create for the load balancer.
+
+  lb_subnet_2_name:
+    type: string
+    default: 'lb-subnet-2'
+    title: Load Balancer Subnet 2 Name
+    description: The name of the subnet to create for the second load balancer node. This field is required only if you are not using regional subnets.
+
+  user_id:
+    type: string
+
+  private_key_path:
+    type: string
+
+  fingerprint:
+    type: string
+
+  wls_edition:
+    type: string
+
+  use_regional_subnet:
+    type: boolean
+
+  use_marketplace_image:
+    type: boolean
+    default: true
+
+  mp_listing_resource_version:
+    type: string
+
+  mp_listing_id:
+    type: string
+
+  tenancy_ocid:
+    type: string
+    title: Tenancy ID
+    description: The Oracle Cloud Identifier (OCID) for your tenancy
+    required: true
+
+  region:
+    type: oci:identity:region:name
+    title: Region
+    description: The region in which to create all resources
+    required: true
+
+  create_policies:
+    visible: ${orm_create_mode}
+    type: boolean
+    title: OCI Policies
+    description: Create policies to read Secrets from Vault and manage Autonomous Transaction Processing Database (if applicable). Unselecting this option is intended for Advanced Users only. Please make sure to read and follow the documentation to create necessary groups and policies before unselecting this field.
+    required: false
+    default: true
+
+  log_level:
+    type: enum
+    title: Log Level
+    description: Log level
+    enum:
+      - DEBUG
+      - INFO
+    default: INFO
+
+  mp_baselinux_instance_image_id:
+    type: string
+    title: Base Linux Instance OCID
+    description: The Oracle Cloud Identifier (OCID) for PIC image
+
+  mp_baselinux_listing_id:
+    type: string
+    title: Base Linux  Marketplace listing Id
+    description: The Base Linux  Marketplace listing Id for PIC image
+
+  mp_baselinux_listing_resource_version:
+    type: string
+    title: Base Linux  Marketplace listing version
+    description: The Base Linux  Marketplace listing version for PIC image
+
+  compartment_ocid:
+    type: oci:identity:compartment:id
+    title: WebLogic Server Compartment
+    description: The compartment in which to create the WebLogic Server compute instances
+    required: true
+
+  wls_version:
+    type: enum
+    title: Weblogic Server Version
+    description: The version of WebLogic Server to provision
+    enum:
+      - 12.2.1.4
+      - 12.2.1.3
+      - 11.1.1.7
+    default: 12.2.1.3
